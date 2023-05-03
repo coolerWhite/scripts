@@ -8,6 +8,11 @@ $resources = @(
     "https://www.nalog.gov.ru/rn77/related_activities/ucfns/ccenter_res/"
     "https://fssp.gov.ru/sertif/"
     "https://www.gosuslugi.ru/crt"
+    "http://crl.roskazna.ru/crl"   
+)
+
+$resources_add = @(
+    ""
 )
 
 $ext = @(
@@ -28,7 +33,7 @@ foreach($urls in $resources){
         if ($cerFiles.Count -eq 0) {
             foreach ($url in $linkurl){
                 $urlname = ($url -split '/')[-1]
-                wget -Uri $url -OutFile "C:\Users\vic\scripts\cer\$urlname" -Verbose
+                wget -Uri $url -OutFile "C:\Users\vic\scripts\sertificats\$urlname" -Verbose
                 echo "file dowload $urlname"
             }
         # Отправка уведомления по почте о загрузке файлов
