@@ -4,10 +4,12 @@
 #$subject = "Уведомление: Файлы .cer были скачаны"
 #$body = "Файлы .cer были успешно скачаны с сайта."
 
+# название ресураса
 $resources = @(
     "http://crl.roskazna.ru/crl"   
 )
 
+# список расширений которые будем искать
 $ext = @(
     "*.crl"
     "*.crt"
@@ -16,24 +18,37 @@ $ext = @(
 
 $date = Get-Date    
 
+# цикл общий
 foreach($urls in $resources){
     $link = wget -Uri $urls -UseBasicParsing
 
+    #цикл получения расширений из найденых ссылок
     foreach ($extens in $ext){
-        $linkurl = $link.Links.Href | Where-Object { $_ -like $extens}    
+        $linkurl = $link.Links.Href | Where-Object { $_ -like $extens}  
+        # переменная для проверки файлов с расширениями  
         $cerFiles = Get-ChildItem -Path $PWD -Filter $extens
 
+        # условие скачивания новых файлов (если его не будет)
         if ($cerFiles.Count -eq 0) {
+
+            # цикл скачивания новых файлов
             foreach ($url in $linkurl){
                 
+                # при скачивании возникает ошибка, т.к часть ссылок на файл относительная, а другая полная. 
+                # ловим ошибки при скачивании и добавляем ссылку на основной ресурс для относительных ссылок
                 try {
+                    # убираем все что не является названием файла
                     $urlname = ($url -split '/')[-1]
                     wget -Uri $url -OutFile "$urlname" -Verbose
+                    # запись в log.txt о скаченном файле
                     echo "$date file dowload $urlname" >> C:\Users\vic\scripts\log.txt
                 }
+                
                 catch {
+                    # т.к у Росказный ссылки на внутрений ресурс, то надо добавить к относительному путь основной сайт
                     $url_add = "http://crl.roskazna.ru/crl/" + $url
                     wget -Uri $url_add -OutFile "$urlname" -Verbose
+                    # запись в log.txt о скаченном файле
                     echo " $date file dowload $urlname" >> C:\Users\vic\scripts\log.txt
                 }
             }
@@ -41,6 +56,7 @@ foreach($urls in $resources){
         #Send-MailMessage -From $from -To $to -Subject $subject -Body $body    
         }
         else {
+            # если файл уже есть, то он не скачивается и записывается в log.txt
             Write-Host "$date Files dowload before $extens" >> C:\Users\vic\scripts\log.txt
         }
     }
